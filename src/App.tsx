@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { Toolbar } from './components/Toolbar';
 import { MarkdownEditor } from './components/MarkdownEditor';
 import { BookletPreview } from './components/BookletPreview';
-import { useDebouncedLocalStorage } from './hooks/useLocalStorage';
+import { useLocalStorage, useDebouncedLocalStorage } from './hooks/useLocalStorage';
 import { useTheme } from './hooks/useTheme';
 import { reflowContent } from './utils/pageReflow';
 import { generatePocketModPdf } from './utils/pdfGenerator';
@@ -16,6 +16,8 @@ function App() {
   );
   const [selectedPage, setSelectedPage] = useState(1);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [showFoldLines, setShowFoldLines] = useLocalStorage('pocket-jot-fold-lines', true);
+  const [highlightCover, setHighlightCover] = useLocalStorage('pocket-jot-cover-border', false);
   const { isDark } = useTheme();
 
   // Reflow content across pages automatically
@@ -27,14 +29,14 @@ function App() {
   const handleGeneratePdf = useCallback(async () => {
     setIsGeneratingPdf(true);
     try {
-      await generatePocketModPdf(pages, isDark);
+      await generatePocketModPdf(pages, { showFoldLines, highlightCover });
     } catch (error) {
       console.error('Failed to generate PDF:', error);
       alert('Failed to generate PDF. Please try again.');
     } finally {
       setIsGeneratingPdf(false);
     }
-  }, [pages, isDark]);
+  }, [pages, showFoldLines, highlightCover]);
 
   // Handle clear
   const handleClear = useCallback(() => {
@@ -49,6 +51,10 @@ function App() {
         onGeneratePdf={handleGeneratePdf}
         onClear={handleClear}
         isGeneratingPdf={isGeneratingPdf}
+        showFoldLines={showFoldLines}
+        onShowFoldLinesChange={setShowFoldLines}
+        highlightCover={highlightCover}
+        onHighlightCoverChange={setHighlightCover}
       />
 
       {/* Main content */}
@@ -76,6 +82,7 @@ function App() {
                 pages={pages}
                 selectedPage={selectedPage}
                 onPageSelect={setSelectedPage}
+                highlightCover={highlightCover}
               />
             </div>
           </div>

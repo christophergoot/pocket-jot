@@ -7,6 +7,7 @@ interface PagePreviewProps {
   isSelected?: boolean;
   onClick?: () => void;
   showPageNumber?: boolean;
+  highlightCover?: boolean;
 }
 
 // Fixed dimensions matching PDF output (74mm x 105mm scaled)
@@ -19,6 +20,7 @@ export function PagePreview({
   isSelected = false,
   onClick,
   showPageNumber = true,
+  highlightCover = false,
 }: PagePreviewProps) {
   return (
     <div
@@ -45,7 +47,12 @@ export function PagePreview({
           lineHeight: '1.3',
         }}
       >
-        <div className="prose-pocket text-gray-900 dark:text-gray-100 h-full overflow-hidden">
+        <div
+          className={`prose-pocket text-gray-900 dark:text-gray-100 h-full overflow-hidden ${
+            highlightCover ? 'border-gray-800 dark:border-gray-200 rounded-sm p-1' : ''
+          }`}
+          style={highlightCover ? { border: '2px double currentColor' } : undefined}
+        >
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {content || ''}
           </ReactMarkdown>

@@ -4,7 +4,7 @@ import type { PageContent } from '../types';
 // Fixed page dimensions matching PDF output (74mm x 105mm at ~3px/mm)
 // These must stay constant regardless of window size
 const PAGE_WIDTH_PX = 222;  // 74mm * 3
-const PAGE_HEIGHT_PX = 315; // 105mm * 3
+const PAGE_HEIGHT_PX = 260; // Reduced to prevent bottom clipping in PDF output
 
 /**
  * Split content into individual lines/items that can be placed on pages
@@ -46,23 +46,61 @@ function measureContent(lines: string[], container: HTMLDivElement): number {
 
 /**
  * Simple markdown to HTML for measurement
+ * Process line by line to avoid adding <br> between block elements
  */
 function renderForMeasurement(markdown: string): string {
   if (!markdown) return '';
 
-  return markdown
-    .replace(/^### (.+)$/gm, '<div style="font-size:11px;font-weight:600;margin:0 0 4px 0;">$1</div>')
-    .replace(/^## (.+)$/gm, '<div style="font-size:12px;font-weight:700;margin:0 0 6px 0;">$1</div>')
-    .replace(/^# (.+)$/gm, '<div style="font-size:14px;font-weight:700;margin:0 0 8px 0;">$1</div>')
-    .replace(/^(\s*)[-*+]\s+(.+)$/gm, (_, indent, text) => {
-      const level = indent.length / 4;
-      return `<div style="margin-left:${12 + level * 12}px;margin-bottom:2px;">• ${text}</div>`;
-    })
-    .replace(/^(\s*)\d+\.\s+(.+)$/gm, (_, indent, text) => {
-      const level = indent.length / 4;
-      return `<div style="margin-left:${12 + level * 12}px;margin-bottom:2px;">${text}</div>`;
-    })
-    .replace(/\n/g, '<br>');
+  const lines = markdown.split('\n');
+  const result: string[] = [];
+
+  for (const line of lines) {
+    // Headers
+    if (/^### (.+)$/.test(line)) {
+      result.push(line.replace(/^### (.+)$/, '<div style="font-size:11px;font-weight:600;margin:0 0 4px 0;">$1</div>'));
+      continue;
+    }
+    if (/^## (.+)$/.test(line)) {
+      result.push(line.replace(/^## (.+)$/, '<div style="font-size:12px;font-weight:700;margin:0 0 6px 0;">$1</div>'));
+      continue;
+    }
+    if (/^# (.+)$/.test(line)) {
+      result.push(line.replace(/^# (.+)$/, '<div style="font-size:14px;font-weight:700;margin:0 0 8px 0;">$1</div>'));
+      continue;
+    }
+
+    // Unordered list items (detect indentation - 2 or 4 spaces per level)
+    const ulMatch = line.match(/^(\s*)[-*+]\s+(.+)$/);
+    if (ulMatch) {
+      const indent = ulMatch[1];
+      const text = ulMatch[2];
+      // Support both 2-space and 4-space indentation
+      const level = Math.floor(indent.length / 2);
+      result.push(`<div style="margin-left:${level * 12}px;margin-bottom:2px;">• ${text}</div>`);
+      continue;
+    }
+
+    // Ordered list items
+    const olMatch = line.match(/^(\s*)\d+\.\s+(.+)$/);
+    if (olMatch) {
+      const indent = olMatch[1];
+      const text = olMatch[2];
+      const level = Math.floor(indent.length / 2);
+      result.push(`<div style="margin-left:${level * 12}px;margin-bottom:2px;">${text}</div>`);
+      continue;
+    }
+
+    // Empty line
+    if (line.trim() === '') {
+      result.push('<div style="height:8px;"></div>');
+      continue;
+    }
+
+    // Regular text
+    result.push(`<div style="margin-bottom:4px;">${line}</div>`);
+  }
+
+  return result.join('');
 }
 
 /**

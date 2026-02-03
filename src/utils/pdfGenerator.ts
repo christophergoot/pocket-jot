@@ -1,15 +1,21 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { POCKET_MOD_LAYOUT, A4_WIDTH_MM, A4_HEIGHT_MM, PAGE_WIDTH_MM, PAGE_HEIGHT_MM } from './constants';
+import { POCKET_MOD_POSITIONS, A4_WIDTH_MM, A4_HEIGHT_MM, PAGE_WIDTH_MM, PAGE_HEIGHT_MM } from './constants';
 import type { PageContent } from '../types';
+
+interface PdfOptions {
+  showFoldLines?: boolean;
+  highlightCover?: boolean;
+}
 
 /**
  * Generate a pocket mod PDF from page contents
  */
 export async function generatePocketModPdf(
   pages: PageContent[],
-  _isDark: boolean = false // Ignored - PDF always uses light mode for printing
+  options: PdfOptions = {}
 ): Promise<void> {
+  const { showFoldLines = true, highlightCover = false } = options;
   // Create a temporary container for rendering pages
   const container = document.createElement('div');
   container.style.position = 'absolute';
@@ -30,6 +36,7 @@ export async function generatePocketModPdf(
 
     for (let i = 0; i < 8; i++) {
       const pageContent = pages[i]?.content || '';
+      const isFirstPage = i === 0;
 
       // Create page element - always use light mode for printing
       const pageElement = document.createElement('div');
@@ -45,8 +52,14 @@ export async function generatePocketModPdf(
       pageElement.style.overflow = 'hidden';
       pageElement.style.boxSizing = 'border-box';
 
-      // Simple markdown to HTML conversion for PDF
-      pageElement.innerHTML = simpleMarkdownToHtml(pageContent);
+      // Add cover border if enabled and this is page 1 (double hairline style)
+      if (highlightCover && isFirstPage) {
+        const contentHtml = simpleMarkdownToHtml(pageContent);
+        pageElement.innerHTML = `<div style="border: 3px double #1f2937; border-radius: 2px; padding: 8px; height: calc(100% - 6px); box-sizing: border-box; overflow: hidden;">${contentHtml}</div>`;
+      } else {
+        // Simple markdown to HTML conversion for PDF
+        pageElement.innerHTML = simpleMarkdownToHtml(pageContent);
+      }
 
       container.appendChild(pageElement);
 
@@ -62,8 +75,9 @@ export async function generatePocketModPdf(
     }
 
     // Place each page on the PDF according to pocket mod layout
-    for (const [pageNum, row, col, rotated] of POCKET_MOD_LAYOUT) {
-      const canvas = pageCanvases[pageNum - 1];
+    for (const position of POCKET_MOD_POSITIONS) {
+      const { row, col, page, rotated } = position;
+      const canvas = pageCanvases[page - 1];
       const imgData = canvas.toDataURL('image/png');
 
       // Calculate position
@@ -81,17 +95,19 @@ export async function generatePocketModPdf(
       }
     }
 
-    // Add fold lines (light gray dashed lines)
-    pdf.setDrawColor(200, 200, 200);
-    pdf.setLineDashPattern([2, 2], 0);
-    pdf.setLineWidth(0.3);
+    // Add fold lines (light gray dashed lines) if enabled
+    if (showFoldLines) {
+      pdf.setDrawColor(200, 200, 200);
+      pdf.setLineDashPattern([2, 2], 0);
+      pdf.setLineWidth(0.3);
 
-    // Horizontal center line
-    pdf.line(0, PAGE_HEIGHT_MM, A4_WIDTH_MM, PAGE_HEIGHT_MM);
+      // Horizontal center line
+      pdf.line(0, PAGE_HEIGHT_MM, A4_WIDTH_MM, PAGE_HEIGHT_MM);
 
-    // Vertical lines
-    for (let i = 1; i < 4; i++) {
-      pdf.line(i * PAGE_WIDTH_MM, 0, i * PAGE_WIDTH_MM, A4_HEIGHT_MM);
+      // Vertical lines
+      for (let i = 1; i < 4; i++) {
+        pdf.line(i * PAGE_WIDTH_MM, 0, i * PAGE_WIDTH_MM, A4_HEIGHT_MM);
+      }
     }
 
     // Download the PDF
@@ -129,18 +145,23 @@ function simpleMarkdownToHtml(markdown: string): string {
 
   const lines = markdown.split('\n');
   const result: string[] = [];
-  let inUl = false;
-  let inOl = false;
   let inParagraph = false;
 
-  const closeLists = () => {
-    if (inUl) {
-      result.push('</ul>');
-      inUl = false;
+  // Track list state with a stack for nesting
+  // Each entry: { type: 'ul' | 'ol', indent: number }
+  const listStack: { type: 'ul' | 'ol'; indent: number }[] = [];
+
+  const closeListsToLevel = (targetIndent: number) => {
+    while (listStack.length > 0 && listStack[listStack.length - 1].indent >= targetIndent) {
+      const list = listStack.pop()!;
+      result.push(list.type === 'ul' ? '</ul>' : '</ol>');
     }
-    if (inOl) {
-      result.push('</ol>');
-      inOl = false;
+  };
+
+  const closeAllLists = () => {
+    while (listStack.length > 0) {
+      const list = listStack.pop()!;
+      result.push(list.type === 'ul' ? '</ul>' : '</ol>');
     }
   };
 
@@ -151,30 +172,39 @@ function simpleMarkdownToHtml(markdown: string): string {
     }
   };
 
+  // Get indentation level (count leading spaces, 2 spaces = 1 level)
+  const getIndentLevel = (line: string): number => {
+    const match = line.match(/^(\s*)/);
+    if (!match) return 0;
+    const spaces = match[1].replace(/\t/g, '  ').length;
+    return Math.floor(spaces / 2);
+  };
+
   for (const line of lines) {
     const trimmed = line.trim();
+    const indentLevel = getIndentLevel(line);
 
     if (!trimmed) {
-      closeLists();
+      closeAllLists();
       closeParagraph();
       continue;
     }
 
     // Headers
     if (trimmed.startsWith('### ')) {
-      closeLists();
+      closeAllLists();
       closeParagraph();
       result.push(`<h3 style="font-size:11px;font-weight:600;margin:0 0 4px 0;">${formatInline(trimmed.slice(4))}</h3>`);
       continue;
     }
     if (trimmed.startsWith('## ')) {
-      closeLists();
+      closeAllLists();
       closeParagraph();
       result.push(`<h2 style="font-size:12px;font-weight:700;margin:0 0 6px 0;">${formatInline(trimmed.slice(3))}</h2>`);
       continue;
     }
     if (trimmed.startsWith('# ')) {
-      closeLists();
+      closeAllLists();
       closeParagraph();
       result.push(`<h1 style="font-size:14px;font-weight:700;margin:0 0 8px 0;">${formatInline(trimmed.slice(2))}</h1>`);
       continue;
@@ -182,7 +212,7 @@ function simpleMarkdownToHtml(markdown: string): string {
 
     // Blockquote
     if (trimmed.startsWith('> ')) {
-      closeLists();
+      closeAllLists();
       closeParagraph();
       result.push(`<blockquote style="border-left:2px solid #d1d5db;padding-left:8px;margin:4px 0;font-style:italic;">${formatInline(trimmed.slice(2))}</blockquote>`);
       continue;
@@ -190,7 +220,7 @@ function simpleMarkdownToHtml(markdown: string): string {
 
     // Horizontal rule
     if (trimmed === '---' || trimmed === '***' || trimmed === '___') {
-      closeLists();
+      closeAllLists();
       closeParagraph();
       result.push('<hr style="border:none;border-top:1px solid #d1d5db;margin:8px 0;">');
       continue;
@@ -200,14 +230,23 @@ function simpleMarkdownToHtml(markdown: string): string {
     const ulMatch = trimmed.match(/^[-*+]\s+(.+)$/);
     if (ulMatch) {
       closeParagraph();
-      if (inOl) {
-        result.push('</ol>');
-        inOl = false;
+
+      // Close lists that are deeper than current indent
+      closeListsToLevel(indentLevel + 1);
+
+      // Check if we need to open a new list
+      const currentList = listStack.length > 0 ? listStack[listStack.length - 1] : null;
+      if (!currentList || currentList.indent < indentLevel || currentList.type !== 'ul') {
+        // Need to open a new ul at this level
+        if (currentList && currentList.type === 'ol' && currentList.indent === indentLevel) {
+          // Close the ol at same level first
+          result.push('</ol>');
+          listStack.pop();
+        }
+        result.push(`<ul style="list-style-type:disc;padding-left:16px;margin:${listStack.length === 0 ? '0 0 8px 0' : '4px 0'};">`);
+        listStack.push({ type: 'ul', indent: indentLevel });
       }
-      if (!inUl) {
-        result.push('<ul style="list-style-type:disc;padding-left:16px;margin:0 0 8px 0;">');
-        inUl = true;
-      }
+
       result.push(`<li style="margin-bottom:2px;">${formatInline(ulMatch[1])}</li>`);
       continue;
     }
@@ -216,20 +255,29 @@ function simpleMarkdownToHtml(markdown: string): string {
     const olMatch = trimmed.match(/^\d+\.\s+(.+)$/);
     if (olMatch) {
       closeParagraph();
-      if (inUl) {
-        result.push('</ul>');
-        inUl = false;
+
+      // Close lists that are deeper than current indent
+      closeListsToLevel(indentLevel + 1);
+
+      // Check if we need to open a new list
+      const currentList = listStack.length > 0 ? listStack[listStack.length - 1] : null;
+      if (!currentList || currentList.indent < indentLevel || currentList.type !== 'ol') {
+        // Need to open a new ol at this level
+        if (currentList && currentList.type === 'ul' && currentList.indent === indentLevel) {
+          // Close the ul at same level first
+          result.push('</ul>');
+          listStack.pop();
+        }
+        result.push(`<ol style="list-style-type:decimal;padding-left:16px;margin:${listStack.length === 0 ? '0 0 8px 0' : '4px 0'};">`);
+        listStack.push({ type: 'ol', indent: indentLevel });
       }
-      if (!inOl) {
-        result.push('<ol style="list-style-type:decimal;padding-left:16px;margin:0 0 8px 0;">');
-        inOl = true;
-      }
+
       result.push(`<li style="margin-bottom:2px;">${formatInline(olMatch[1])}</li>`);
       continue;
     }
 
     // Regular paragraph
-    closeLists();
+    closeAllLists();
     if (!inParagraph) {
       result.push('<p style="margin:0 0 8px 0;">');
       inParagraph = true;
@@ -239,7 +287,7 @@ function simpleMarkdownToHtml(markdown: string): string {
     result.push(formatInline(trimmed));
   }
 
-  closeLists();
+  closeAllLists();
   closeParagraph();
 
   return result.join('');
