@@ -8,7 +8,7 @@ import type { PageContent } from '../types';
  */
 export async function generatePocketModPdf(
   pages: PageContent[],
-  isDark: boolean = false
+  _isDark: boolean = false // Ignored - PDF always uses light mode for printing
 ): Promise<void> {
   // Create a temporary container for rendering pages
   const container = document.createElement('div');
@@ -31,14 +31,14 @@ export async function generatePocketModPdf(
     for (let i = 0; i < 8; i++) {
       const pageContent = pages[i]?.content || '';
 
-      // Create page element
+      // Create page element - always use light mode for printing
       const pageElement = document.createElement('div');
-      pageElement.className = `prose-pocket ${isDark ? 'dark' : ''}`;
+      pageElement.className = 'prose-pocket';
       pageElement.style.width = '222px'; // ~74mm at 3x scale
       pageElement.style.height = '315px'; // ~105mm at 3x scale
       pageElement.style.padding = '12px';
-      pageElement.style.backgroundColor = isDark ? '#1f2937' : '#ffffff';
-      pageElement.style.color = isDark ? '#f3f4f6' : '#111827';
+      pageElement.style.backgroundColor = '#ffffff'; // Always white for print
+      pageElement.style.color = '#111827'; // Always dark text for print
       pageElement.style.fontFamily = 'system-ui, -apple-system, sans-serif';
       pageElement.style.fontSize = '10px';
       pageElement.style.lineHeight = '1.4';
@@ -50,10 +50,10 @@ export async function generatePocketModPdf(
 
       container.appendChild(pageElement);
 
-      // Render to canvas
+      // Render to canvas - always white background for print
       const canvas = await html2canvas(pageElement, {
         scale: 2,
-        backgroundColor: isDark ? '#1f2937' : '#ffffff',
+        backgroundColor: '#ffffff',
         logging: false,
       });
 

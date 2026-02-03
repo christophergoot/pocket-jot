@@ -56,6 +56,7 @@ function App() {
         {/* Editor panel */}
         <div className="w-1/2 border-r border-gray-200 dark:border-gray-700 overflow-hidden">
           <MarkdownEditor
+            key={isDark ? 'dark' : 'light'}
             value={content}
             onChange={setContent}
             isSaving={isSaving}
