@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Markdown preview styling */
+.prose-pocket h1 {
+  @apply text-lg font-bold mb-2;
+}
+
+.prose-pocket h2 {
+  @apply text-base font-bold mb-1.5;
+}
+
+.prose-pocket h3 {
+  @apply text-sm font-semibold mb-1;
+}
+
+.prose-pocket p {
+  @apply text-xs mb-2 leading-relaxed;
+}
+
+.prose-pocket ul {
+  @apply text-xs mb-2 pl-4 list-disc;
+}
+
+.prose-pocket ol {
+  @apply text-xs mb-2 pl-4 list-decimal;
+}
+
+.prose-pocket li {
+  @apply mb-0.5 ml-1;
+}
+
+.prose-pocket ul ul,
+.prose-pocket ol ul {
+  @apply list-[circle] mt-1;
+}
+
+.prose-pocket ul ol,
+.prose-pocket ol ol {
+  @apply list-[lower-alpha] mt-1;
+}
+
+.prose-pocket input[type="checkbox"] {
+  @apply mr-1.5;
+}
+
+.prose-pocket code {
+  @apply bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs font-mono;
+}
+
+.prose-pocket pre {
+  @apply bg-gray-200 dark:bg-gray-700 p-2 rounded text-xs overflow-auto mb-2;
+}
+
+.prose-pocket pre code {
+  @apply bg-transparent p-0;
+}
+
+.prose-pocket blockquote {
+  @apply border-l-2 border-gray-300 dark:border-gray-600 pl-2 italic text-xs mb-2;
+}
+
+.prose-pocket a {
+  @apply text-blue-600 dark:text-blue-400 underline;
+}
+
+.prose-pocket hr {
+  @apply border-gray-300 dark:border-gray-600 my-2;
+}
+
+.prose-pocket strong {
+  @apply font-bold;
+}
+
+.prose-pocket em {
+  @apply italic;
+}
+
+/* MD Editor overrides */
+.w-md-editor {
+  --md-editor-font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.w-md-editor,
+.w-md-editor .w-md-editor-content {
+  height: 100% !important;
+}
+
+.w-md-editor-toolbar {
+  border-bottom: 1px solid var(--color-border-default) !important;
+}
+
+[data-color-mode="dark"] .w-md-editor {
+  --color-canvas-default: #1f2937;
+  --color-canvas-subtle: #374151;
+  --color-border-default: #4b5563;
+}
+
+[data-color-mode="light"] .w-md-editor {
+  --color-canvas-default: #ffffff;
+  --color-canvas-subtle: #f9fafb;
+  --color-border-default: #e5e7eb;
+}
+
+/* Page preview aspect ratio (A4 / 8 = portrait, roughly 1:1.414 / 4 columns / 2 rows) */
+/* Each page is 74mm x 105mm, ratio is approximately 0.7:1 */
+.page-preview {
+  aspect-ratio: 74 / 105;
+}
+
+/* Word wrap for page content */
+.prose-pocket {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.prose-pocket * {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
