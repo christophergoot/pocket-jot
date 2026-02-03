@@ -1,8 +1,10 @@
 import { TOTAL_PAGES } from './constants';
 import type { PageContent } from '../types';
 
-// Approximate page height in pixels for measurement
-const PAGE_HEIGHT_PX = 280;
+// Fixed page dimensions matching PDF output (74mm x 105mm at ~3px/mm)
+// These must stay constant regardless of window size
+const PAGE_WIDTH_PX = 222;  // 74mm * 3
+const PAGE_HEIGHT_PX = 315; // 105mm * 3
 
 /**
  * Split content into individual lines/items that can be placed on pages
@@ -64,17 +66,20 @@ function renderForMeasurement(markdown: string): string {
 }
 
 /**
- * Create measurement container
+ * Create measurement container matching PDF dimensions exactly
  */
 function createMeasureContainer(): HTMLDivElement {
   const container = document.createElement('div');
   container.style.position = 'absolute';
   container.style.visibility = 'hidden';
-  container.style.width = '180px';
+  container.style.width = `${PAGE_WIDTH_PX}px`;
+  container.style.height = `${PAGE_HEIGHT_PX}px`;
   container.style.fontSize = '10px';
   container.style.lineHeight = '1.4';
   container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-  container.style.padding = '8px';
+  container.style.padding = '12px';
+  container.style.boxSizing = 'border-box';
+  container.style.overflow = 'hidden';
   document.body.appendChild(container);
   return container;
 }
