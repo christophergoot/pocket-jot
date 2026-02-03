@@ -27,3 +27,6 @@ yarn-error.log*
 *.local
 .env
 .env.*
+
+# Generated PDFs
+*.pdf
