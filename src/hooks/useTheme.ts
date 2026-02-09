@@ -15,6 +15,9 @@ export function useTheme() {
 
     root.classList.remove('light', 'dark');
     root.classList.add(isDark ? 'dark' : 'light');
+    
+    // Set data-color-mode for @uiw/react-md-editor and other libraries
+    root.setAttribute('data-color-mode', isDark ? 'dark' : 'light');
   }, []);
 
   // Apply theme on mount and when it changes
