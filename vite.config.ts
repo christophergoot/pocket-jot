@@ -1,11 +1,21 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+/// <reference types="vitest" />
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/pocket-jot/',
+  base: "/pocket-jot/",
   server: {
     port: 3000,
   },
-})
+  test: {
+    environment: "happy-dom",
+    globals: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov"],
+      include: ["src/utils/**"],
+    },
+  },
+});
