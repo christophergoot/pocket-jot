@@ -8,7 +8,7 @@ import {
   TOTAL_PAGES,
   PAGE_SEPARATORS,
   DEFAULT_CONTENT,
-} from "../constants";
+} from "../../lib/constants";
 
 describe("constants — A4 dimensions", () => {
   it("A4_WIDTH_MM is 297", () => expect(A4_WIDTH_MM).toBe(297));

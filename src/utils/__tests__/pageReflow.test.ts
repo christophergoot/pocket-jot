@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { reflowContent, reflowPages } from "../pageReflow";
-import type { PageContent } from "../../types";
+import { reflowContent, reflowPages } from "../../lib/pageReflow";
+import type { PageContent } from "../../lib";
 
 // happy-dom's scrollHeight is always 0 (no layout engine).
 // We mock the getter to simulate overflow at controlled thresholds.

@@ -1,23 +1,30 @@
-import { useState, useCallback, useMemo } from 'react';
-import { Toolbar } from './components/Toolbar';
-import { MarkdownEditor } from './components/MarkdownEditor';
-import { BookletPreview } from './components/BookletPreview';
-import { useLocalStorage, useDebouncedLocalStorage } from './hooks/useLocalStorage';
-import { useTheme } from './hooks/useTheme';
-import { reflowContent } from './utils/pageReflow';
-import { generatePocketModPdf } from './utils/pdfGenerator';
-import { DEFAULT_CONTENT } from './utils/constants';
+import { useState, useCallback, useMemo } from "react";
+import { Toolbar } from "./components/Toolbar";
+import { MarkdownEditor } from "./components/MarkdownEditor";
+import { BookletPreview } from "./components/BookletPreview";
+import {
+  useLocalStorage,
+  useDebouncedLocalStorage,
+} from "./hooks/useLocalStorage";
+import { useTheme } from "./hooks/useTheme";
+import { reflowContent, generatePocketModPdf, DEFAULT_CONTENT } from "./lib";
 
 function App() {
   const [content, setContent, isSaving] = useDebouncedLocalStorage(
-    'pocket-jot-content',
+    "pocket-jot-content",
     DEFAULT_CONTENT,
-    500
+    500,
   );
   const [selectedPage, setSelectedPage] = useState(1);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  const [showFoldLines, setShowFoldLines] = useLocalStorage('pocket-jot-fold-lines', true);
-  const [highlightCover, setHighlightCover] = useLocalStorage('pocket-jot-cover-border', false);
+  const [showFoldLines, setShowFoldLines] = useLocalStorage(
+    "pocket-jot-fold-lines",
+    true,
+  );
+  const [highlightCover, setHighlightCover] = useLocalStorage(
+    "pocket-jot-cover-border",
+    false,
+  );
   const { isDark } = useTheme();
 
   // Reflow content across pages automatically
@@ -31,8 +38,8 @@ function App() {
     try {
       await generatePocketModPdf(pages, { showFoldLines, highlightCover });
     } catch (error) {
-      console.error('Failed to generate PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      console.error("Failed to generate PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -40,7 +47,7 @@ function App() {
 
   // Handle clear
   const handleClear = useCallback(() => {
-    setContent('');
+    setContent("");
     setSelectedPage(1);
   }, [setContent]);
 
@@ -62,7 +69,7 @@ function App() {
         {/* Editor panel */}
         <div className="w-1/2 border-r border-gray-200 dark:border-gray-700 overflow-hidden">
           <MarkdownEditor
-            key={isDark ? 'dark' : 'light'}
+            key={isDark ? "dark" : "light"}
             value={content}
             onChange={setContent}
             isSaving={isSaving}
