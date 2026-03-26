@@ -65,6 +65,30 @@ function App() {
         onHighlightCoverChange={setHighlightCover}
       />
 
+      {/* Mobile tab bar */}
+      <nav className="md:hidden flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <button
+          onClick={() => setActiveTab("edit")}
+          className={`flex-1 py-3 text-sm font-medium transition-colors ${
+            activeTab === "edit"
+              ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+              : "text-gray-600 dark:text-gray-400"
+          }`}
+        >
+          Edit
+        </button>
+        <button
+          onClick={() => setActiveTab("preview")}
+          className={`flex-1 py-3 text-sm font-medium transition-colors ${
+            activeTab === "preview"
+              ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+              : "text-gray-600 dark:text-gray-400"
+          }`}
+        >
+          Preview
+        </button>
+      </nav>
+
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Editor panel */}
@@ -100,30 +124,6 @@ function App() {
           </div>
         </div>
       </div>
-
-      {/* Mobile tab bar */}
-      <nav className="md:hidden flex border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <button
-          onClick={() => setActiveTab("edit")}
-          className={`flex-1 py-3 text-sm font-medium transition-colors ${
-            activeTab === "edit"
-              ? "text-blue-600 dark:text-blue-400 border-t-2 border-blue-600 dark:border-blue-400 -mt-px"
-              : "text-gray-600 dark:text-gray-400"
-          }`}
-        >
-          Edit
-        </button>
-        <button
-          onClick={() => setActiveTab("preview")}
-          className={`flex-1 py-3 text-sm font-medium transition-colors ${
-            activeTab === "preview"
-              ? "text-blue-600 dark:text-blue-400 border-t-2 border-blue-600 dark:border-blue-400 -mt-px"
-              : "text-gray-600 dark:text-gray-400"
-          }`}
-        >
-          Preview
-        </button>
-      </nav>
     </div>
   );
 }
