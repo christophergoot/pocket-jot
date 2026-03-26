@@ -120,6 +120,7 @@ body {
 
 .w-md-editor-toolbar {
   border-bottom: 1px solid var(--color-border-default) !important;
+  flex-wrap: wrap !important;
 }
 
 [data-color-mode="dark"] .w-md-editor {
