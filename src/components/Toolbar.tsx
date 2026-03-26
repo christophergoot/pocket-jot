@@ -1,5 +1,5 @@
-import { FileDown, Trash2, BookOpen } from 'lucide-react';
-import { ThemeToggle } from './ThemeToggle';
+import { FileDown, Trash2, BookOpen } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface ToolbarProps {
   onGeneratePdf: () => void;
@@ -24,13 +24,13 @@ function Toggle({
     <label className="flex items-center gap-2 cursor-pointer select-none">
       <div
         className={`relative w-9 h-5 rounded-full transition-colors ${
-          checked ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
+          checked ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
         }`}
         onClick={() => onChange(!checked)}
       >
         <div
           className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-            checked ? 'translate-x-4' : 'translate-x-0'
+            checked ? "translate-x-4" : "translate-x-0"
           }`}
         />
       </div>
@@ -49,18 +49,69 @@ export function Toolbar({
   onHighlightCoverChange,
 }: ToolbarProps) {
   return (
-    <header className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-      {/* Logo / Title */}
-      <div className="flex items-center gap-2">
-        <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-        <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Pocket Jot
-        </h1>
+    <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+      {/* Main row: logo + actions */}
+      <div className="flex items-center justify-between">
+        {/* Logo / Title */}
+        <div className="flex items-center gap-2">
+          <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Pocket Jot
+          </h1>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* PDF Options — desktop only (inline) */}
+          <div className="hidden md:flex items-center gap-4">
+            <Toggle
+              checked={showFoldLines}
+              onChange={onShowFoldLinesChange}
+              label="Fold lines"
+            />
+            <Toggle
+              checked={highlightCover}
+              onChange={onHighlightCoverChange}
+              label="Cover border"
+            />
+            <div className="w-px h-6 bg-gray-200 dark:bg-gray-700" />
+          </div>
+
+          <button
+            onClick={onGeneratePdf}
+            disabled={isGeneratingPdf}
+            className="flex items-center gap-2 px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors font-medium text-sm"
+          >
+            <FileDown className="w-4 h-4" />
+            <span className="hidden sm:inline">
+              {isGeneratingPdf ? "Generating..." : "Generate PDF"}
+            </span>
+            <span className="sm:hidden">{isGeneratingPdf ? "..." : "PDF"}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              if (
+                window.confirm("Are you sure you want to clear all content?")
+              ) {
+                onClear();
+              }
+            }}
+            className="p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
+            title="Clear content"
+            aria-label="Clear content"
+          >
+            <Trash2 className="w-5 h-5" />
+          </button>
+
+          <div className="w-px h-6 bg-gray-200 dark:bg-gray-700" />
+
+          <ThemeToggle />
+        </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-4">
-        {/* PDF Options */}
+      {/* Mobile-only: toggles row */}
+      <div className="flex md:hidden items-center justify-center gap-6 mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
         <Toggle
           checked={showFoldLines}
           onChange={onShowFoldLinesChange}
@@ -71,34 +122,6 @@ export function Toolbar({
           onChange={onHighlightCoverChange}
           label="Cover border"
         />
-
-        <div className="w-px h-6 bg-gray-200 dark:bg-gray-700" />
-
-        <button
-          onClick={onGeneratePdf}
-          disabled={isGeneratingPdf}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors font-medium text-sm"
-        >
-          <FileDown className="w-4 h-4" />
-          {isGeneratingPdf ? 'Generating...' : 'Generate PDF'}
-        </button>
-
-        <button
-          onClick={() => {
-            if (window.confirm('Are you sure you want to clear all content?')) {
-              onClear();
-            }
-          }}
-          className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
-          title="Clear content"
-          aria-label="Clear content"
-        >
-          <Trash2 className="w-5 h-5" />
-        </button>
-
-        <div className="w-px h-6 bg-gray-200 dark:bg-gray-700" />
-
-        <ThemeToggle />
       </div>
     </header>
   );

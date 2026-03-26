@@ -1,5 +1,5 @@
-import { PagePreview } from './PagePreview';
-import type { PageContent } from '../types';
+import { PagePreview } from "./PagePreview";
+import type { PageContent } from "../types";
 
 interface BookletPreviewProps {
   pages: PageContent[];
@@ -15,7 +15,7 @@ export function BookletPreview({
   highlightCover = false,
 }: BookletPreviewProps) {
   return (
-    <div className="grid grid-cols-4 grid-rows-2 gap-3 p-4 bg-gray-100 dark:bg-gray-900 rounded-lg">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 p-3 md:p-4 bg-gray-100 dark:bg-gray-900 rounded-lg">
       {pages.map((page) => (
         <PagePreview
           key={page.pageNumber}

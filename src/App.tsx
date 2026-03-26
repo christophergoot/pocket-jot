@@ -25,6 +25,7 @@ function App() {
     "pocket-jot-cover-border",
     false,
   );
+  const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
   const { isDark } = useTheme();
 
   // Reflow content across pages automatically
@@ -67,7 +68,9 @@ function App() {
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Editor panel */}
-        <div className="w-1/2 border-r border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div
+          className={`${activeTab === "edit" ? "flex" : "hidden"} md:flex flex-col w-full md:w-1/2 border-r border-gray-200 dark:border-gray-700 overflow-hidden`}
+        >
           <MarkdownEditor
             key={isDark ? "dark" : "light"}
             value={content}
@@ -78,7 +81,9 @@ function App() {
         </div>
 
         {/* Preview panel */}
-        <div className="w-1/2 flex flex-col overflow-hidden">
+        <div
+          className={`${activeTab === "preview" ? "flex" : "hidden"} md:flex flex-col w-full md:w-1/2 overflow-hidden`}
+        >
           {/* Booklet preview (all 8 pages) */}
           <div className="flex-1 p-4 overflow-auto flex flex-col">
             <h2 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3 text-center">
@@ -95,6 +100,30 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* Mobile tab bar */}
+      <nav className="md:hidden flex border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <button
+          onClick={() => setActiveTab("edit")}
+          className={`flex-1 py-3 text-sm font-medium transition-colors ${
+            activeTab === "edit"
+              ? "text-blue-600 dark:text-blue-400 border-t-2 border-blue-600 dark:border-blue-400 -mt-px"
+              : "text-gray-600 dark:text-gray-400"
+          }`}
+        >
+          Edit
+        </button>
+        <button
+          onClick={() => setActiveTab("preview")}
+          className={`flex-1 py-3 text-sm font-medium transition-colors ${
+            activeTab === "preview"
+              ? "text-blue-600 dark:text-blue-400 border-t-2 border-blue-600 dark:border-blue-400 -mt-px"
+              : "text-gray-600 dark:text-gray-400"
+          }`}
+        >
+          Preview
+        </button>
+      </nav>
     </div>
   );
 }
